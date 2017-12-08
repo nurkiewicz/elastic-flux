@@ -1,0 +1,10 @@
+logging.level:
+  com.nurkiewicz: TRACE
+
+elasticsearch:
+  hosts:
+    - http://localhost:9200
+  connectTimeout: 10000
+  connectionRequestTimeout: 10000
+  socketTimeout: 10000
+  maxRetryTimeoutMillis: 60000

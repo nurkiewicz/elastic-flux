@@ -29,8 +29,13 @@ repositories {
 
 
 dependencies {
-	compile('org.springframework.boot:spring-boot-starter-actuator')
-	compile('org.springframework.boot:spring-boot-starter-webflux')
-	testCompile('org.springframework.boot:spring-boot-starter-test')
-	testCompile('io.projectreactor:reactor-test')
+	compile 'org.springframework.boot:spring-boot-starter'
+	compile 'io.projectreactor:reactor-test'
+	compile 'org.elasticsearch:elasticsearch:6.0.1'
+	compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:6.0.1'
+	compile 'io.codearte.jfairy:jfairy:0.5.9'
+	compile 'org.projectlombok:lombok:1.16.18'
+	compile 'com.fasterxml.jackson.datatype:jackson-datatype-joda:2.9.2'
+	testCompile 'org.springframework.boot:spring-boot-starter-test'
+	testCompile 'io.projectreactor:reactor-test'
 }
