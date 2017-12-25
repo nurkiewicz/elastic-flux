@@ -36,6 +36,9 @@ dependencies {
 	compile 'io.codearte.jfairy:jfairy:0.5.9'
 	compile 'org.projectlombok:lombok:1.16.18'
 	compile 'com.fasterxml.jackson.datatype:jackson-datatype-joda:2.9.2'
+	compile 'io.dropwizard.metrics:metrics-core:3.2.5'
+	compile 'io.dropwizard.metrics:metrics-graphite:3.2.5'
+
 	testCompile 'org.springframework.boot:spring-boot-starter-test'
 	testCompile 'io.projectreactor:reactor-test'
 }

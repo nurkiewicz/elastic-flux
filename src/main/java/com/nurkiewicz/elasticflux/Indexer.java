@@ -22,20 +22,34 @@ class Indexer {
 
     private final PersonGenerator personGenerator;
     private final RestHighLevelClient client;
+    private final EsMetrics esMetrics;
 
-    private void index(int count) {
-        personGenerator
+    private Flux<IndexResponse> index(int count, int concurrency) {
+        return personGenerator
                 .infinite()
                 .take(count)
-                .flatMap(this::indexDocSwallowErrors, 1)
-                .window(Duration.ofSeconds(1))
-                .flatMap(Flux::count)
-                .subscribe(winSize -> log.debug("Got {} responses in last second", winSize));
+                .flatMap(doc -> countConcurrent(measure(indexDocSwallowErrors(doc))), concurrency);
+    }
+
+    private <T> Mono<T> countConcurrent(Mono<T> input) {
+        return input
+                .doOnSubscribe(s -> esMetrics.concurrentStart())
+                .doOnTerminate(esMetrics::concurrentStop);
+    }
+
+    private <T> Mono<T> measure(Mono<T> input) {
+        return Mono
+                .fromCallable(esMetrics::startTimer)
+                .flatMap(time ->
+                        input.doOnSuccess(x -> time.stop())
+                );
     }
 
     private Mono<IndexResponse> indexDocSwallowErrors(Doc doc) {
         return indexDoc(doc)
+                .doOnSuccess(response -> esMetrics.success())
                 .doOnError(e -> log.error("Unable to index {}", doc, e))
+                .doOnError(e -> esMetrics.failure())
                 .onErrorResume(e -> Mono.empty());
     }
 
@@ -63,7 +77,14 @@ class Indexer {
 
     @PostConstruct
     void startIndexing() {
-        index(1_000_000);
+        Flux
+                .range(0, 5_000)
+                .map(x -> Math.max(1, x * 10))
+                .doOnNext(x -> log.debug("Target concurrency: {}", x))
+                .concatMap(concurrency -> index(5_000, concurrency))
+                .window(Duration.ofSeconds(1))
+                .flatMap(Flux::count)
+                .subscribe(winSize -> log.debug("Got {} responses in last second", winSize));
     }
 
 }
