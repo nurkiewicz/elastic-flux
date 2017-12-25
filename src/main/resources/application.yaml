@@ -8,3 +8,9 @@ elasticsearch:
   connectionRequestTimeout: 10000
   socketTimeout: 10000
   maxRetryTimeoutMillis: 60000
+
+spring.metrics.export.graphite:
+  host: 192.168.99.100
+  port: 2003
+  protocol: Plaintext
+  step: PT1S

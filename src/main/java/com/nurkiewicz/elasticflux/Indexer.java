@@ -1,5 +1,8 @@
 package com.nurkiewicz.elasticflux;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.ActionListener;
@@ -14,6 +17,8 @@ import reactor.core.publisher.MonoSink;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.LongAdder;
 
 @Component
 @Slf4j
@@ -22,7 +27,11 @@ class Indexer {
 
     private final PersonGenerator personGenerator;
     private final RestHighLevelClient client;
-    private final EsMetrics esMetrics;
+
+    private final Timer indexTimer = Metrics.timer("es.timer");
+    private final LongAdder concurrent = Metrics.gauge("es.concurrent", new LongAdder());
+    private final Counter successes = Metrics.counter("es.index", "result", "success");
+    private final Counter failures = Metrics.counter("es.index", "result", "failure");
 
     private Flux<IndexResponse> index(int count, int concurrency) {
         return personGenerator
@@ -33,23 +42,23 @@ class Indexer {
 
     private <T> Mono<T> countConcurrent(Mono<T> input) {
         return input
-                .doOnSubscribe(s -> esMetrics.concurrentStart())
-                .doOnTerminate(esMetrics::concurrentStop);
+                .doOnSubscribe(s -> concurrent.increment())
+                .doOnTerminate(concurrent::decrement);
     }
 
     private <T> Mono<T> measure(Mono<T> input) {
         return Mono
-                .fromCallable(esMetrics::startTimer)
+                .fromCallable(System::currentTimeMillis)
                 .flatMap(time ->
-                        input.doOnSuccess(x -> time.stop())
+                        input.doOnSuccess(x -> indexTimer.record(System.currentTimeMillis() - time, TimeUnit.MILLISECONDS))
                 );
     }
 
     private Mono<IndexResponse> indexDocSwallowErrors(Doc doc) {
         return indexDoc(doc)
-                .doOnSuccess(response -> esMetrics.success())
+                .doOnSuccess(response -> successes.increment())
                 .doOnError(e -> log.error("Unable to index {}", doc, e))
-                .doOnError(e -> esMetrics.failure())
+                .doOnError(e -> failures.increment())
                 .onErrorResume(e -> Mono.empty());
     }
 
