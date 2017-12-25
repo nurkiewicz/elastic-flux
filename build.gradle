@@ -30,6 +30,7 @@ repositories {
 
 dependencies {
 	compile 'org.springframework.boot:spring-boot-starter'
+	compile 'org.springframework.boot:spring-boot-starter-webflux'
 	compile 'org.springframework.boot:spring-boot-starter-actuator'
 	compile 'io.micrometer:micrometer-registry-graphite:1.0.0-rc.5'
 	compile 'io.projectreactor:reactor-test'
@@ -41,4 +42,7 @@ dependencies {
 
 	testCompile 'org.springframework.boot:spring-boot-starter-test'
 	testCompile 'io.projectreactor:reactor-test'
+	testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
+	testCompile 'org.spockframework:spock-spring:1.1-groovy-2.4'
+
 }

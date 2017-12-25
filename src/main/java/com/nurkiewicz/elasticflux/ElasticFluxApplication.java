@@ -10,12 +10,4 @@ public class ElasticFluxApplication {
 		SpringApplication.run(ElasticFluxApplication.class, args);
 	}
 
-	/*private void run() throws IOException, InterruptedException {
-		try (RestHighLevelClient client = new RestHighLevelClient(
-				RestClient.builder(
-						new HttpHost("localhost", 9200, "http")))) {
-			System.out.println(client.search(new SearchRequest("accounts")));
-		}
-		TimeUnit.SECONDS.sleep(10);
-	}*/
 }
