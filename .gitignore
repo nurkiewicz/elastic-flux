@@ -22,4 +22,4 @@ build/
 nbbuild/
 dist/
 nbdist/
-.nb-gradle/
+.nb-gradle/out
